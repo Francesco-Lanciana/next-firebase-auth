@@ -213,14 +213,34 @@ describe('withAuthUserTokenSSR: with ID token', () => {
     )
   })
 
-  it('throws if verifyIdToken throws', async () => {
+  it('passes an empty serialized AuthUser prop if verifyIdToken throws', async () => {
     expect.assertions(1)
+
+    getCookie.mockImplementation((cookieName) => {
+      if (cookieName === 'SomeName.AuthUserTokens') {
+        return JSON.stringify({
+          idToken: 'some-id-token',
+          refreshToken: 'some-refresh-token',
+        })
+      }
+      if (cookieName === 'SomeName.AuthUser') {
+        return createAuthUser().serialize()
+      }
+      return undefined
+    })
+
     const mockErr = new Error('Invalid thing.')
+    const expectedAuthUserProp = createAuthUser().serialize()
+
     verifyIdToken.mockImplementationOnce(() => Promise.reject(mockErr))
     const withAuthUserTokenSSR = require('src/withAuthUserTokenSSR').default
     const mockGetSSPFunc = jest.fn()
     const func = withAuthUserTokenSSR()(mockGetSSPFunc)
-    await expect(func(createMockNextContext())).rejects.toEqual(mockErr)
+
+    const props = await func(createMockNextContext())
+    expect(props).toEqual({
+      props: { AuthUserSerialized: expectedAuthUserProp },
+    })
   })
 })
 

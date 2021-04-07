@@ -70,9 +70,9 @@ const withAuthUserTokenSSR = (
       try {
         AuthUser = await verifyIdToken(idToken, refreshToken)
       } catch (ignore) {
-        // The Key ID of the Firebase token won't correspond to a known 
+        // The Key ID of the Firebase token won't correspond to a known
         // public key, which means the token has most likely expired.
-        AuthUser = createAuthUser() // unauthenticated AuthUser
+        AuthUser = createAuthUser()
       }
     } else {
       AuthUser = createAuthUser() // unauthenticated AuthUser
